@@ -42,20 +42,6 @@ consultaSQL = """
 df1 = db.query(consultaSQL).df()
 
 consultaSQL = """
-            SELECT DISTINCT Provincia
-            FROM df1
-            ORDER BY Provincia;
-            """
-Provincias = db.query(consultaSQL).df()
-
-consultaSQL = """
-            SELECT DISTINCT ROW_NUMBER() OVER () AS id, Provincia
-            FROM Provincias
-            ORDER BY Provincia;
-            """
-Provincias = db.query(consultaSQL).df()
-
-consultaSQL = """
             SELECT DISTINCT id_localidad as id, localidad
             FROM df1;
             """
@@ -97,7 +83,6 @@ consultaSQL = """
 df1_3FN = db.query(consultaSQL).df()
 
 df1_3FN.to_csv("Datos_3FN/Establecimientos_Educativos.csv", index = False)
-Provincias.to_csv("Datos_3FN/Provincias.csv", index = False)
 Tipos_Niveles.to_csv("Datos_3FN/Tipos_Niveles.csv", index = False)
 Niveles_EE.to_csv("Datos_3FN/Niveles_EE.csv", index = False)
 Localidades.to_csv("Datos_3FN/Localidades.csv", index = False)
@@ -158,10 +143,10 @@ df2_3FN.to_csv("Datos_3FN/Actividades_Establecimientos.csv", index = False)
 df3 = pd.read_csv(r"Datos/Datos_por_departamento_actividad_y_sexo.csv")
 
 consultaSQL = """
-            SELECT DISTINCT (provincia_id - 2) / 4 AS id, provincia
+            SELECT DISTINCT provincia_id AS id, provincia
             FROM df3
             ORDER BY provincia_id;
-"""
+            """
 Provincias = db.query(consultaSQL).df()
 
 consultaSQL = """
