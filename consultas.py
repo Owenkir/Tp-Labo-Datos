@@ -13,10 +13,6 @@ df1 = pd.read_excel(r"Datos/2025.09.24_padron_oficial_establecimientos_educativo
 #%%
 df2 = pd.read_csv(r"Datos/actividades_establecimientos.csv")
 
-
-
-
-
 consultaSQL = """
             SELECT DISTINCT letra, letra_desc
             FROM df2
@@ -36,7 +32,7 @@ consultaSQL = """
             """
 clae6_desc = db.query(consultaSQL).df()
 consultaSQL = """
-            SELECT DISTINCT letra, clae2, clae6
+            SELECT DISTINCT letra, clae6
             FROM df2
             """
 df2_3FN = db.query(consultaSQL).df()
@@ -65,36 +61,34 @@ Departamentos = db.query(consultaSQL).df()
 
 consultaSQL = """
             SELECT
-            COALESCE(M.anio, F.anio) AS anio,
-            COALESCE(M.in_departamentos, F.in_departamentos) AS in_departamentos,
-            COALESCE(M.provincia_id, F.provincia_id) AS provincia_id,
-            COALESCE(M.clae6, F.clae6) AS clae6,
-            COALESCE(M.clae2, F.clae2) AS clae2,
-            COALESCE(M.letra, F.letra) AS letra,
-            M.Empleo AS Empleo_M,
-            M.Establecimientos AS Establecimientos_M,
-            F.Empleo AS Empleo_F,
-            F.Establecimientos AS Establecimientos_F,
-            COALESCE(M.empresas_exportadoras, F.empresas_exportadoras) AS empresas_exportadoras,
+            COALESCE(V.anio, M.anio) AS anio,
+            COALESCE(V.in_departamentos, M.in_departamentos) AS in_departamentos,
+            COALESCE(V.clae6, M.clae6) AS clae6,
+            COALESCE(V.letra, M.letra) AS letra,
+            COALESCE(V.Empleo, 0) AS Empleo_Varones,
+            COALESCE(V.Establecimientos, 0) AS Establecimientos_Varones,
+            COALESCE(M.Empleo, 0) AS Empleo_Mujeres,
+            COALESCE(M.Establecimientos, 0) AS Establecimientos_Mujeres,
+            COALESCE(V.empresas_exportadoras, M.empresas_exportadoras) AS empresas_exportadoras,
             FROM (
                 SELECT *
                 FROM df3
                 WHERE genero = 'Varones'
-            ) AS M
+            ) AS V
             FULL OUTER JOIN (
                 SELECT *
                 FROM df3
                 WHERE genero = 'Mujeres'
-            ) AS F
-            ON M.anio = F.anio
-            AND M.in_departamentos = F.in_departamentos
-            AND M.departamento = F.departamento
-            AND M.provincia_id = F.provincia_id
-            AND M.provincia = F.provincia
-            AND M.clae6 = F.clae6
-            AND M.clae2 = F.clae2
-            AND M.letra = F.letra
-            AND M.empresas_exportadoras = F.empresas_exportadoras;
+            ) AS M
+            ON V.anio = M.anio
+            AND V.in_departamentos = M.in_departamentos
+            AND V.departamento = M.departamento
+            AND V.provincia_id = M.provincia_id
+            AND V.provincia = M.provincia
+            AND V.clae6 = M.clae6
+            AND V.clae2 = M.clae2
+            AND V.letra = M.letra
+            AND V.empresas_exportadoras = M.empresas_exportadoras;
             """
 df3_3FN = db.query(consultaSQL).df()
 
@@ -107,8 +101,6 @@ df4 = pd.read_excel(r"Datos/padron_poblacion.xlsX")
 
 
 df4.columns = ["blank","Edad", "Casos", "Porcentaje", "Porcentaje_Acumulado"]
-df = []
-cont = 0
 consultaSQL = """
             SELECT DISTINCT ROW_NUMBER() OVER () AS id, Casos as departamento
             FROM df4
@@ -119,6 +111,8 @@ Departamentos1 = db.query(consultaSQL).df()
 rows = []
 cont = 0
 for index, row in df4.iterrows():
+    if row["Edad"] == "RESUMEN":
+        break
     if row["Casos"] == "Casos":
         cont += 1
     else:
@@ -135,6 +129,6 @@ consultaSQL = """
             ON Departamentos1.departamento = Departamentos.departamento
             JOIN grupos
             ON grupos.id_departamentos = Departamentos1.id
-"""
+            """
 df4_3FN = db.query(consultaSQL).df()
 # %%
