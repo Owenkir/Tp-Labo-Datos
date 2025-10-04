@@ -13,6 +13,10 @@ df1 = pd.read_excel(r"Datos/2025.09.24_padron_oficial_establecimientos_educativo
 #%%
 df2 = pd.read_csv(r"Datos/actividades_establecimientos.csv")
 
+
+
+
+
 consultaSQL = """
             SELECT DISTINCT letra, letra_desc
             FROM df2
@@ -41,6 +45,10 @@ df2_3FN = db.query(consultaSQL).df()
 ## Clean df3
 #%%
 df3 = pd.read_csv(r"Datos/Datos_por_departamento_actividad_y_sexo.csv")
+
+
+
+
 consultaSQL = """
             SELECT DISTINCT provincia_id, provincia
             FROM df3
@@ -94,6 +102,10 @@ df3_3FN = db.query(consultaSQL).df()
 #%%
 df4 = pd.read_excel(r"Datos/padron_poblacion.xlsX")
 
+
+
+
+
 df4.columns = ["blank","Edad", "Casos", "Porcentaje", "Porcentaje_Acumulado"]
 df = []
 cont = 0
@@ -117,12 +129,12 @@ for index, row in df4.iterrows():
 
 grupos = pd.DataFrame(rows).reset_index(drop=True)
 consultaSQL = """
-    SELECT in_departamentos, Edad, Casos
-    FROM Departamentos1
-    JOIN Departamentos
-    ON Departamentos1.departamento = Departamentos.departamento
-    JOIN grupos
-    ON grupos.id_departamentos = Departamentos1.id
+            SELECT in_departamentos, Edad, Casos
+            FROM Departamentos1
+            JOIN Departamentos
+            ON Departamentos1.departamento = Departamentos.departamento
+            JOIN grupos
+            ON grupos.id_departamentos = Departamentos1.id
 """
 df4_3FN = db.query(consultaSQL).df()
 # %%
