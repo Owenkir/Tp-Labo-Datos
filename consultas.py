@@ -213,7 +213,7 @@ df3_3FN.to_csv("Datos_3FN/Dep_Act_Sex.csv", index = False)
 
 ## df4
 #%%
-df4 = pd.read_excel(r"Datos/padron_poblacion.xlsx")
+df4 = pd.read_excel(r"Datos/padron_poblacion.xlsX")
 
 df4.columns = ["blank","Edad", "Casos", "Porcentaje", "Porcentaje_Acumulado"]
 consultaSQL = """
