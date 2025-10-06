@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import duckdb as db
 import numpy as np
 
-## Clean df1
+## df1
 #%%
 df1 = pd.read_excel(r"Datos/2025.09.24_padron_oficial_establecimientos_educativos_die_icse_1.xlsx",skiprows=12)
 
@@ -213,7 +213,7 @@ df3_3FN.to_csv("Datos_3FN/Dep_Act_Sex.csv", index = False)
 
 ## df4
 #%%
-df4 = pd.read_excel(r"Datos/padron_poblacion.xlsX")
+df4 = pd.read_excel(r"Datos/padron_poblacion.xlsx")
 
 df4.columns = ["blank","Edad", "Casos", "Porcentaje", "Porcentaje_Acumulado"]
 consultaSQL = """
