@@ -45,6 +45,7 @@ df1 = db.query(consultaSQL).df()
 consultaSQL = """
             SELECT DISTINCT id_localidad as id, localidad
             FROM df1;
+            ORDER BY id
             """
 Localidades = db.query(consultaSQL).df()
 
@@ -102,15 +103,15 @@ Localidades.to_csv("Datos_3FN/Localidades.csv", index = False)
 df2 = pd.read_csv(r"Datos/actividades_establecimientos.csv")
 
 consultaSQL = """
-            SELECT DISTINCT letra, letra_desc
+            SELECT DISTINCT letra_desc as id, letra
             FROM df2
-            ORDER BY letra;
+            ORDER BY id;
             """
 letra_desc = db.query(consultaSQL).df()
 consultaSQL = """
-            SELECT DISTINCT clae6, clae6_desc
+            SELECT DISTINCT clae6_desc as id, clae6
             FROM df2
-            ORDER BY clae6;
+            ORDER BY id;
             """
 clae6_desc = db.query(consultaSQL).df()
 consultaSQL = """
@@ -137,11 +138,11 @@ df2_3FN.to_csv("Datos_3FN/Actividades_Establecimientos.csv", index = False)
 df3 = pd.read_csv(r"Datos/Datos_por_departamento_actividad_y_sexo.csv")
 
 
-## Igualar provincias df1 y df3
+## Igualar id y nombres provincias df1 y df3
 consultaSQL = """
             SELECT DISTINCT provincia_id AS id, provincia
             FROM df3
-            ORDER BY provincia_id;
+            ORDER BY id;
             """
 Provincias = db.query(consultaSQL).df()
 
@@ -215,7 +216,7 @@ consultaSQL = """
             ORDER BY id;
             """
 
-## Igualar id_departamento de df3 y df4
+## Igualar id y nombres departamentos de df3 y df4
 Departamentos1 = db.query(consultaSQL).df()
 rows = []
 cont = 0
@@ -244,3 +245,5 @@ df4_3FN = db.query(consultaSQL).df()
 df4_3FN.to_csv("Datos_3FN/Padron_Poblacion.csv", index = False)
 
 
+
+# %%
