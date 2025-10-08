@@ -108,12 +108,6 @@ consultaSQL = """
             """
 letra_desc = db.query(consultaSQL).df()
 consultaSQL = """
-            SELECT DISTINCT clae2, clae2_desc
-            FROM df2
-            ORDER BY clae2;
-            """
-clae2_desc = db.query(consultaSQL).df()
-consultaSQL = """
             SELECT DISTINCT clae6, clae6_desc
             FROM df2
             ORDER BY clae6;
@@ -126,7 +120,6 @@ consultaSQL = """
 df2_3FN = db.query(consultaSQL).df()
 
 letra_desc.to_csv("Datos_3FN/Letras.csv", index = False)
-clae2_desc.to_csv("Datos_3FN/clae2.csv", index = False)
 clae6_desc.to_csv("Datos_3FN/clae6.csv", index = False)
 df2_3FN.to_csv("Datos_3FN/Actividades_Establecimientos.csv", index = False)
 
@@ -143,6 +136,8 @@ df2_3FN.to_csv("Datos_3FN/Actividades_Establecimientos.csv", index = False)
 #%%
 df3 = pd.read_csv(r"Datos/Datos_por_departamento_actividad_y_sexo.csv")
 
+
+## Igualar provincias df1 y df3
 consultaSQL = """
             SELECT DISTINCT provincia_id AS id, provincia
             FROM df3
@@ -163,11 +158,8 @@ consultaSQL = """
             SELECT
                 COALESCE(V.anio, M.anio) AS anio,
                 COALESCE(V.in_departamentos, M.in_departamentos) AS id_departamentos,
-                COALESCE(V.departamento, M.departamento) AS departamento,
-                COALESCE(V.provincia_id, M.provincia_id) AS provincia_id,
-                COALESCE(V.provincia, M.provincia) AS provincia,
+                COALESCE(V.id_provincia, M.id_provincia) AS id_provincia,
                 COALESCE(V.clae6, M.clae6) AS clae6,
-                COALESCE(V.clae2, M.clae2) AS clae2,
                 COALESCE(V.letra, M.letra) AS letra,
                 COALESCE(V.Empleo, 0) AS Empleo_Varones,
                 COALESCE(M.Empleo, 0) AS Empleo_Mujeres,
@@ -222,6 +214,8 @@ consultaSQL = """
             WHERE Edad LIKE 'AREA%'
             ORDER BY id;
             """
+
+## Igualar id_departamento de df3 y df4
 Departamentos1 = db.query(consultaSQL).df()
 rows = []
 cont = 0
@@ -248,3 +242,5 @@ consultaSQL = """
 df4_3FN = db.query(consultaSQL).df()
 
 df4_3FN.to_csv("Datos_3FN/Padron_Poblacion.csv", index = False)
+
+

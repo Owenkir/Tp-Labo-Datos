@@ -1,6 +1,0 @@
--Analizar las formas normales en que se encuentran las tablas de Establecimientos
-Educativos y Establecimientos Productivos. Justificar de manera concisa.
-
-Establecimientos Educativos no cumple con 1FN ya que tiene relaciones anidadas
-
-Establecimientos Productivos se encuentra en 1FN ya que posee valores atómicos y no contiene relaciones anidadas y no se encuentra en 2FN ya que hay atributos que dependen parcialmente de la clave (agregar dibujito)
