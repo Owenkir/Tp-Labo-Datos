@@ -8,6 +8,7 @@ import numpy as np
 ## df1
 #%%
 df1 = pd.read_excel(r"Datos/2025.09.24_padron_oficial_establecimientos_educativos_die_icse_1.xlsx",skiprows=12)
+#df1 = pd.read_excel(r"c:\Users\Owen\Desktop\Tp-Labo-Datos\Datos\2025.09.24_padron_oficial_establecimientos_educativos_die_icse_1.xlsx",skiprows=12)
 
 df1 = df1.rename(columns={
     'Unnamed: 37': 'Talleres Artística',
@@ -84,10 +85,10 @@ consultaSQL = """
             """
 df1_3FN = db.query(consultaSQL).df()
 
-df1_3FN.to_csv("Datos_3FN/Establecimientos_Educativos.csv", index = False)
+'''df1_3FN.to_csv("Datos_3FN/Establecimientos_Educativos.csv", index = False)
 Tipos_Niveles.to_csv("Datos_3FN/Tipos_Niveles.csv", index = False)
 Niveles_EE.to_csv("Datos_3FN/Niveles_EE.csv", index = False)
-Localidades.to_csv("Datos_3FN/Localidades.csv", index = False)
+Localidades.to_csv("Datos_3FN/Localidades.csv", index = False)'''
 
 
 
@@ -99,8 +100,9 @@ Localidades.to_csv("Datos_3FN/Localidades.csv", index = False)
 
 
 ## df2
-#%%
+ #%%
 df2 = pd.read_csv(r"Datos/actividades_establecimientos.csv")
+#df2 = pd.read_csv(r"c:\Users\Owen\Desktop\Tp-Labo-Datos\Datos\actividades_establecimientos.csv")
 
 consultaSQL = """
             SELECT DISTINCT letra_desc as id, letra
@@ -120,9 +122,9 @@ consultaSQL = """
             """
 df2_3FN = db.query(consultaSQL).df()
 
-letra_desc.to_csv("Datos_3FN/Letras.csv", index = False)
+'''letra_desc.to_csv("Datos_3FN/Letras.csv", index = False)
 clae6_desc.to_csv("Datos_3FN/clae6.csv", index = False)
-df2_3FN.to_csv("Datos_3FN/Actividades_Establecimientos.csv", index = False)
+df2_3FN.to_csv("Datos_3FN/Actividades_Establecimientos.csv", index = False)'''
 
 
 
@@ -136,7 +138,7 @@ df2_3FN.to_csv("Datos_3FN/Actividades_Establecimientos.csv", index = False)
 ## df3
 #%%
 df3 = pd.read_csv(r"Datos/Datos_por_departamento_actividad_y_sexo.csv")
-
+#df3 = pd.read_csv(r"c:\Users\Owen\Desktop\Tp-Labo-Datos\Datos\Datos_por_departamento_actividad_y_sexo.csv")
 
 ## Igualar id y nombres provincias df1 y df3
 consultaSQL = """
@@ -192,8 +194,8 @@ df3_3FN["Empleo_Mujeres"] = df3_3FN["Empleo_Mujeres"].fillna(0)
 df3_3FN["Establecimientos_Varones"] = df3_3FN["Establecimientos_Varones"].fillna(0)
 df3_3FN["Establecimientos_Mujeres"] = df3_3FN["Establecimientos_Mujeres"].fillna(0)
 
-Departamentos.to_csv("Datos_3FN/Departamentos.csv", index = False)
-df3_3FN.to_csv("Datos_3FN/Dep_Act_Sex.csv", index = False)
+'''Departamentos.to_csv("Datos_3FN/Departamentos.csv", index = False)
+df3_3FN.to_csv("Datos_3FN/Dep_Act_Sex.csv", index = False)'''
 
 
 
@@ -207,6 +209,8 @@ df3_3FN.to_csv("Datos_3FN/Dep_Act_Sex.csv", index = False)
 ## df4
 #%%
 df4 = pd.read_excel(r"Datos/padron_poblacion.xlsX")
+#df4 = pd.read_excel(r"c:\Users\Owen\Desktop\Tp-Labo-Datos\Datos\padron_poblacion.xlsX")   
+
 
 df4.columns = ["blank","Edad", "Casos", "Porcentaje", "Porcentaje_Acumulado"]
 consultaSQL = """
@@ -242,7 +246,7 @@ consultaSQL = """
             """
 df4_3FN = db.query(consultaSQL).df()
 
-df4_3FN.to_csv("Datos_3FN/Padron_Poblacion.csv", index = False)
+'''df4_3FN.to_csv("Datos_3FN/Padron_Poblacion.csv", index = False)'''
 
 
 
