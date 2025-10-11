@@ -7,57 +7,29 @@ import numpy as np
 
 ## df1
 #%%
-df1 = pd.read_excel(r"Datos/2025.09.24_padron_oficial_establecimientos_educativos_die_icse_1.xlsx",skiprows=12)
-
-df1 = df1.rename(columns={
-    'Unnamed: 37': 'Talleres Artística',
-    'Unnamed: 38': 'Servicios complementarios',
-    'Unnamed: 39': 'Validez titulos',
-    'Unnamed: 40': 'Total de hogares',
-    'Unnamed: 41': 'Hogares con población de 3 a 17',
-    'Unnamed: 42': 'Poblacion de 3 a 17'
-})
+df1 = pd.read_excel(r"Datos\2022_padron_oficial_establecimientos_educativos.xlsx",skiprows=6)
 
 consultaSQL = """
             SELECT
+            Cueanexo,
             "Jurisdicción" AS Provincia,
-            "Departamento",
-            "Código de departamento" AS id_departamento,
-            "Localidad",
-            "Código de localidad" AS id_localidad,
-            "Cueanexo",
+            CAST(SUBSTRING(CAST("Código de localidad" AS TEXT) FROM 1 FOR LENGTH(CAST("Código de localidad" AS TEXT)) - 3) AS INTEGER) AS id_departamento,
+            Departamento AS departamento,
             "Nivel inicial - Jardín maternal",
             "Nivel inicial - Jardín de infantes",
-            "Primario",
-            "Secundario",
+            Primario,
+            Secundario,
             "Secundario - INET",
-            "SNU",
-            "SNU - INET",
-            "SNU - Cursos",
-            "Total de hogares",
-            "Hogares con población de 3 a 17",
-            "Poblacion de 3 a 17"
             FROM df1
-            WHERE Común = 1
+            WHERE TRY_CAST(Común AS INT) = 1
             """
 df1 = db.query(consultaSQL).df()
-
-consultaSQL = """
-            SELECT DISTINCT id_localidad as id, localidad
-            FROM df1;
-            ORDER BY id
-            """
-Localidades = db.query(consultaSQL).df()
-
 
 niveles = ["Nivel inicial - Jardín maternal",
             "Nivel inicial - Jardín de infantes",
             "Primario",
             "Secundario",
-            "Secundario - INET",
-            "SNU",
-            "SNU - INET",
-            "SNU - Cursos"]
+            "Secundario - INET",]
 
 Tipos_Niveles = pd.DataFrame({
     "id": range(len(niveles)),
@@ -67,19 +39,25 @@ Tipos_Niveles = pd.DataFrame({
 rows = []
 
 for id, nivel in enumerate(niveles):
-    df = df1[df1[nivel] == 1][["Cueanexo"]].copy()
-    df["id"] = id
+    df1[nivel] = pd.to_numeric(df1[nivel], errors='coerce')
+    df = df1.loc[df1[nivel] == 1, ["Cueanexo"]].copy()
+    df["id_nivel"] = id
     rows.append(df)
 
 Niveles_EE = pd.concat(rows, ignore_index=True)
 
 consultaSQL = """
+            SELECT DISTINCT
+            id_departamento,
+            departamento,
+            FROM df1
+            """
+Departamentos = db.query(consultaSQL).df()
+
+consultaSQL = """
             SELECT
-            Cueanexo,
-            id_localidad,
-            "Total de hogares",
-            "Hogares con población de 3 a 17",
-            "Poblacion de 3 a 17"
+            Cueanexo, 
+            id_departamento
             FROM df1;
             """
 df1_3FN = db.query(consultaSQL).df()
@@ -87,8 +65,6 @@ df1_3FN = db.query(consultaSQL).df()
 df1_3FN.to_csv("Datos_3FN/Establecimientos_Educativos.csv", index = False)
 Tipos_Niveles.to_csv("Datos_3FN/Tipos_Niveles.csv", index = False)
 Niveles_EE.to_csv("Datos_3FN/Niveles_EE.csv", index = False)
-Localidades.to_csv("Datos_3FN/Localidades.csv", index = False)
-
 
 
 
@@ -103,25 +79,12 @@ Localidades.to_csv("Datos_3FN/Localidades.csv", index = False)
 df2 = pd.read_csv(r"Datos/actividades_establecimientos.csv")
 
 consultaSQL = """
-            SELECT DISTINCT letra_desc as id, letra
+            SELECT DISTINCT clae6, CAST(SUBSTRING(CAST(clae6 AS TEXT), 3) AS INTEGER) AS clae3, clae6_desc AS Actividad
             FROM df2
-            ORDER BY id;
-            """
-letra_desc = db.query(consultaSQL).df()
-consultaSQL = """
-            SELECT DISTINCT clae6_desc as id, clae6
-            FROM df2
-            ORDER BY id;
-            """
-clae6_desc = db.query(consultaSQL).df()
-consultaSQL = """
-            SELECT DISTINCT letra, clae6
-            FROM df2
+            ORDER BY clae6;
             """
 df2_3FN = db.query(consultaSQL).df()
 
-letra_desc.to_csv("Datos_3FN/Letras.csv", index = False)
-clae6_desc.to_csv("Datos_3FN/clae6.csv", index = False)
 df2_3FN.to_csv("Datos_3FN/Actividades_Establecimientos.csv", index = False)
 
 
@@ -147,9 +110,14 @@ consultaSQL = """
 Provincias = db.query(consultaSQL).df()
 
 consultaSQL = """
-            SELECT DISTINCT in_departamentos as id, departamento
-            FROM df3
-            ORDER BY id;
+            SELECT DISTINCT 
+                id_departamento, 
+                departamento,
+                Provincias.id AS id_provincia, 
+            FROM Departamentos
+            FULL OUTER JOIN Provincias
+                ON CAST(id_departamento AS VARCHAR) LIKE CAST(Provincias.id AS VARCHAR) || '___'
+            ORDER BY id_departamento;
             """
 Departamentos = db.query(consultaSQL).df()
 
@@ -158,10 +126,8 @@ M = df3[df3["genero"]=="Mujeres"]
 consultaSQL = """
             SELECT
                 COALESCE(V.anio, M.anio) AS anio,
-                COALESCE(V.in_departamentos, M.in_departamentos) AS id_departamentos,
-                COALESCE(V.id_provincia, M.id_provincia) AS id_provincia,
+                COALESCE(V.in_departamentos, M.in_departamentos) AS id_departamento,
                 COALESCE(V.clae6, M.clae6) AS clae6,
-                COALESCE(V.letra, M.letra) AS letra,
                 COALESCE(V.Empleo, 0) AS Empleo_Varones,
                 COALESCE(M.Empleo, 0) AS Empleo_Mujeres,
                 COALESCE(V.Establecimientos, 0) AS Establecimientos_Varones,
@@ -172,7 +138,7 @@ consultaSQL = """
                 FROM df3
                 WHERE genero = 'Varones'
             ) AS V
-            FULL OUTER JOIN (
+            JOIN (
                 SELECT *
                 FROM df3
                 WHERE genero = 'Mujeres'
@@ -184,7 +150,6 @@ consultaSQL = """
             AND V.provincia = M.provincia
             AND V.clae6 = M.clae6
             AND V.clae2 = M.clae2
-            AND V.letra = M.letra
         """
 df3_3FN = db.query(consultaSQL).df()
 df3_3FN["Empleo_Varones"] = df3_3FN["Empleo_Varones"].fillna(0)
@@ -192,6 +157,7 @@ df3_3FN["Empleo_Mujeres"] = df3_3FN["Empleo_Mujeres"].fillna(0)
 df3_3FN["Establecimientos_Varones"] = df3_3FN["Establecimientos_Varones"].fillna(0)
 df3_3FN["Establecimientos_Mujeres"] = df3_3FN["Establecimientos_Mujeres"].fillna(0)
 
+Provincias.to_csv("Datos_3FN/Provincias.csv", index = False)
 Departamentos.to_csv("Datos_3FN/Departamentos.csv", index = False)
 df3_3FN.to_csv("Datos_3FN/Dep_Act_Sex.csv", index = False)
 
@@ -209,41 +175,28 @@ df3_3FN.to_csv("Datos_3FN/Dep_Act_Sex.csv", index = False)
 df4 = pd.read_excel(r"Datos/padron_poblacion.xlsX")
 
 df4.columns = ["blank","Edad", "Casos", "Porcentaje", "Porcentaje_Acumulado"]
-consultaSQL = """
-            SELECT DISTINCT ROW_NUMBER() OVER () AS id, Casos as departamento
-            FROM df4
-            WHERE Edad LIKE 'AREA%'
-            ORDER BY id;
-            """
 
-## Igualar id y nombres departamentos de df3 y df4
-Departamentos1 = db.query(consultaSQL).df()
 rows = []
-cont = 0
 for index, row in df4.iterrows():
     if row["Edad"] == "RESUMEN":
         break
-    if row["Casos"] == "Casos":
-        cont += 1
     else:
         if isinstance(row["Edad"], (int, np.integer)):
             r = row.to_dict()
-            r["id_departamentos"] = cont
+            r["id_departamento"] = cont
             rows.append(r)
+        else:
+            if pd.notnull(row["Edad"]) and row["Edad"][0] == "A":
+                cont = int(row["Edad"][-5:])
 
 grupos = pd.DataFrame(rows).reset_index(drop=True)
+
 consultaSQL = """
-            SELECT id_departamentos, Edad, Casos
-            FROM Departamentos1
-            JOIN Departamentos
-            ON Departamentos1.departamento = Departamentos.departamento
-            JOIN grupos
-            ON grupos.id_departamentos = Departamentos1.id
+            SELECT id_departamento, Edad, Casos
+            FROM grupos
             """
 df4_3FN = db.query(consultaSQL).df()
 
 df4_3FN.to_csv("Datos_3FN/Padron_Poblacion.csv", index = False)
-
-
 
 # %%
