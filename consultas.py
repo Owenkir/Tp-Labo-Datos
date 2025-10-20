@@ -320,10 +320,9 @@ consultaSQL = """
             Provincia,
             id_departamento,
             Departamento,
-            SUM(CASE WHEN Nivel = 'Jardín maternal' THEN 1 ELSE 0 END) AS "Jardines maternales",
-            SUM(CASE WHEN Nivel = 'Jardín de infantes' THEN 1 ELSE 0 END) AS "Jardines de infantes",
+            SUM(CASE WHEN Nivel = 'Jardín maternal' OR Nivel = 'Jardín de infantes' THEN 1 ELSE 0 END) AS Jardines,
             SUM(CASE WHEN Nivel = 'Primario' THEN 1 ELSE 0 END) AS Primarios,
-            SUM(CASE WHEN Nivel = 'Secundario' OR Nivel = 'Secundari - INET'THEN 1 ELSE 0 END) AS Secundarios,
+            SUM(CASE WHEN Nivel = 'Secundario' OR Nivel = 'Secundario - INET'THEN 1 ELSE 0 END) AS Secundarios,
         FROM Est_Dep_Niv
         GROUP BY
             Provincia,
@@ -339,10 +338,8 @@ consultaSQL = """
         SELECT
             Provincia,
             Departamento,
-            "Jardines maternales",
-            SUM(CASE WHEN Padron_Poblacion.Edad <= 2 THEN Padron_Poblacion.Casos ELSE 0 END) AS "Población Jardín maternal",
-            "Jardines de infantes",
-            SUM(CASE WHEN Padron_Poblacion.Edad >= 3 AND Padron_Poblacion.Edad <= 5 THEN Padron_Poblacion.Casos ELSE 0 END) AS "Población Jardin de infantes",
+            "Jardines",
+            SUM(CASE WHEN Padron_Poblacion.Edad <= 5 THEN Padron_Poblacion.Casos ELSE 0 END) AS "Población Jardín",
             Primarios,
             SUM(CASE WHEN Padron_Poblacion.Edad >= 6 AND Padron_Poblacion.Edad <= 11 THEN Padron_Poblacion.Casos ELSE 0 END) AS "Población Primario",
             Secundarios,
@@ -353,8 +350,7 @@ consultaSQL = """
         GROUP BY
             Provincia,
             Departamento,
-            "Jardines maternales",
-            "Jardines de infantes",
+            Jardines,
             Primarios,
             Secundarios,
 """
