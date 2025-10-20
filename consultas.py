@@ -313,7 +313,7 @@ consultaSQL = """
         JOIN Tipos_Niveles
             ON Tipos_Niveles.id = Niveles_EE.id_nivel
 """
-Est_Dep_Niv = db.query(consultaSQL).df()
+EsDepartamentos_Niv = db.query(consultaSQL).df()
 
 consultaSQL = """
         SELECT
@@ -323,7 +323,7 @@ consultaSQL = """
             SUM(CASE WHEN Nivel = 'Jardín maternal' OR Nivel = 'Jardín de infantes' THEN 1 ELSE 0 END) AS Jardines,
             SUM(CASE WHEN Nivel = 'Primario' THEN 1 ELSE 0 END) AS Primarios,
             SUM(CASE WHEN Nivel = 'Secundario' OR Nivel = 'Secundario - INET'THEN 1 ELSE 0 END) AS Secundarios,
-        FROM Est_Dep_Niv
+        FROM EsDepartamentos_Niv
         GROUP BY
             Provincia,
             Departamento,
@@ -358,9 +358,115 @@ Ej1 = db.query(consultaSQL).df()
 # ii)
 
 # iii)
+consultaSQL = """ SELECT
+    Provincias.provincia AS Provincia,
+    Departamentos.departamento AS Departamento,
+    
+    -- Convertimos todos los nulls a 0
+    COALESCE(Dep_Act_Sex.Exportadoras_con_Empleo_Femenino, 0) AS "Cant_Expo_Mujeres",
+    COALESCE(Establecimientos_Educativos.Cant_EE, 0) AS "Cant_EE",
+    COALESCE(Padron_Poblacion.Poblacion_Total, 0) AS "Poblacion_Total"
+    FROM Departamentos 
+    JOIN Provincias ON Departamentos.id_provincia = Provincias.id
+LEFT JOIN
+    ( -- Cuento Establecimientos Educativos
+        SELECT id_departamento,
+            COUNT(Cueanexo) AS Cant_EE
+        FROM Establecimientos_Educativos
+        GROUP BY id_departamento
+    ) AS Establecimientos_Educativos ON Departamentos.id_departamento = Establecimientos_Educativos.id_departamento
+LEFT JOIN
+    (-- Sumo la Poblacion Total
+        SELECT id_departamento,
+            SUM(Casos) AS Poblacion_Total
+        FROM Padron_Poblacion
+        GROUP BY id_departamento
+    ) AS Padron_Poblacion ON Departamentos.id_departamento = Padron_Poblacion.id_departamento
+LEFT JOIN
+    (-- Sumo empresas exportadoras que emplean mujeres
+        SELECT id_departamento,
+            SUM(CASE
+                    WHEN Empleo_Mujeres > 0 THEN empresas_exportadoras
+                    ELSE 0
+                END
+            ) AS Exportadoras_con_Empleo_Femenino
+        FROM Dep_Act_Sex
+        WHERE anio = 2022
+        GROUP BY id_departamento
+    ) AS Dep_Act_Sex ON Departamentos.id_departamento = Dep_Act_Sex.id_departamento
+
+ORDER BY
+    "Cant_EE" DESC,
+    "Cant_Expo_Mujeres" DESC,
+    Provincia ASC,
+    Departamento ASC;
+"""
+
+Ej3 = db.query(consultaSQL).df()
 
 # iv)
 
-# v)
+consultaSQL = """ -- Calculo del total de empleo por cada departamento
+WITH Empleo_Departamentos AS (
+    SELECT id_departamento, SUM(Empleo_Varones + Empleo_Mujeres) AS Total_Empleo
+    FROM Dep_Act_Sex
+    WHERE anio = 2022
+    GROUP BY id_departamento
+),
+
+-- Calculo del promedio de empleo a nivel provincial, el promedio de los totales de sus departamentos
+Promedio_Provincial AS (
+    SELECT Departamentos.id_provincia, AVG(Empleo_Departamentos.Total_Empleo) AS Promedio_Empleo_Prov
+    FROM Empleo_Departamentos
+    JOIN Departamentos ON Empleo_Departamentos.id_departamento = Departamentos.id_departamento
+    GROUP BY Departamentos.id_provincia
+),
+
+-- Identificar los departamentos que superan el promedio
+Departamentos_Filtrados AS (
+    SELECT Empleo_Departamentos.id_departamento, Departamentos.id_provincia
+    FROM Empleo_Departamentos
+    JOIN Departamentos ON Empleo_Departamentos.id_departamento = Departamentos.id_departamento
+    JOIN Promedio_Provincial ON Departamentos.id_provincia = Promedio_Provincial.id_provincia
+    WHERE Empleo_Departamentos.Total_Empleo > Promedio_Provincial.Promedio_Empleo_Prov
+),
+
+-- Calculo del empleo por rubro para cada departamento
+-- uso printf('%06d', clae6) para rellenar con zeros si no llega a 6 numeros
+-- uso SUBSTR(-,1,3) para agarrar los primeros 3 digitos
+Empleo_por_Rubro AS (
+    SELECT id_departamento, SUBSTR(printf('%06d', clae6), 1, 3) AS clae3, SUM(Empleo_Varones + Empleo_Mujeres) AS Empleo_Rubro
+    FROM Dep_Act_Sex
+    WHERE anio = 2022
+    GROUP BY id_departamento, clae3
+),
+
+-- Busco el mejor rubro por cada departamento
+Top_Rubro_Deptal AS (
+    SELECT id_departamento, clae3, Empleo_Rubro,        
+        ROW_NUMBER() OVER(
+            PARTITION BY id_departamento 
+            ORDER BY Empleo_Rubro DESC
+        ) AS Ranking_Rubros
+    FROM Empleo_por_Rubro
+)
+
+-- Unimos la info filtrando por los deptos sobre promedio y el mejor rubro 
+    SELECT Provincias.provincia AS Provincia, Departamentos.departamento AS Departamento, Top_Rubro_Deptal.clae3 AS "CLAE3", Top_Rubro_Deptal.Empleo_Rubro AS "Cant. empleos"
+    FROM Departamentos_Filtrados
+    JOIN Departamentos ON Departamentos_Filtrados.id_departamento = Departamentos.id_departamento
+    JOIN Provincias ON Departamentos.id_provincia = Provincias.id
+    JOIN Top_Rubro_Deptal ON Departamentos_Filtrados.id_departamento = Top_Rubro_Deptal.id_departamento
+    WHERE Top_Rubro_Deptal.Ranking_Rubros = 1  
+    ORDER BY
+        Provincia,
+        "Cant. empleos" DESC;
+    
+"""
+
+Ej4 = db.query(consultaSQL).df()
+
+
+
 
 # %%
