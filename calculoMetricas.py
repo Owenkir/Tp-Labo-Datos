@@ -3,7 +3,7 @@ import pandas as pd
 #GQM Tabla 1 - Establecimientos Educativos
 
 # Cargar el archivo de establecimientos educativos, omitiendo las primeras 6 filas que no contienen los datos de la tabla.
-ee_df = pd.read_csv("C:\Users\andre\Downloads\2022_padron_oficial_establecimientos_educativos.xlsx", skiprows=6) 
+ee_df = pd.read_excel(r"TablasOriginales\2022_padron_oficial_establecimientos_educativos.xlsx", skiprows=6) 
                                         
 # Renombrar la columna para facilitar el acceso
 ee_df.rename(columns={'Mail': 'mail'}, inplace=True) 
@@ -17,11 +17,12 @@ total_vacios = mails_nulos + mails_espacio # El total de vacíos es la suma de l
 metrica_mail = total_vacios / total_registros 
 
 print(metrica_mail)
+#0.19121296848983696
 
 #GQM Tabla 2 - Establecimientos Productivos
 
 # Cargar el archivo de establecimientos productivos
-ep_df = pd.read_csv('Datos_por_departamento_actividad_y_sexo.csv')
+ep_df = pd.read_csv(r'TablasOriginales/Datos_por_departamento_actividad_y_sexo.csv')
 
 # Sumar el empleo y los establecimientos
 ep_df['total_empleo'] = ep_df['Empleo']
@@ -41,3 +42,4 @@ cantidad_inconsistentes = len(inconsistentes)
 metrica_ep = cantidad_inconsistentes / total_registros_ep
 
 print(metrica_ep)
+#0.0
