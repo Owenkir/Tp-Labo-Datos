@@ -355,7 +355,27 @@ consultaSQL = """
             Secundarios,
 """
 Ej1 = db.query(consultaSQL).df()
-# ii)
+# ii) 
+                #CHEQUEAR PROBLEMA CON CABA
+consultaSQL = """
+WITH Empleo_Departamentos AS (
+    SELECT id_departamento, 
+        SUM(Empleo_Varones + Empleo_Mujeres) AS Empleados_Totales
+    FROM Dep_Act_Sex
+    WHERE anio = 2022
+    GROUP BY id_departamento
+)
+    SELECT Provincias.provincia AS Provincia, Departamentos.departamento AS Departamento, Empleo_Departamentos.Empleados_Totales AS "Cantidad total de empleados en 2022"
+    FROM Empleo_Departamentos
+    JOIN Departamentos ON Empleo_Departamentos.id_departamento = Departamentos.id_departamento
+    JOIN Provincias ON Departamentos.id_provincia = Provincias.id
+    ORDER BY Provincia ASC,
+    "Cantidad total de empleados en 2022" DESC;
+
+"""
+
+Ej2 = db.query(consultaSQL).df()
+
 
 # iii)
 consultaSQL = """ SELECT
