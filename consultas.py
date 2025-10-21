@@ -512,12 +512,12 @@ ORDER BY total_empleo DESC
 df_plot_empleo = db.query(sql_empleo_prov).df()
 
 # Generar el gráfico
-plt.figure(figsize=(12, 9)) # Tamaño adecuado para 24 provincias
+plt.figure(figsize=(12, 9)) 
 ax_empleo = sns.barplot(
     data=df_plot_empleo,
     x='total_empleo',
     y='provincia',
-    palette='inferno' # Usamos una paleta de colores
+    palette='inferno' 
 )
 
 # Configurar títulos y etiquetas
@@ -565,7 +565,6 @@ Niveles_Agrupados AS (
     SELECT
         id,
         CASE
-            -- Tu script define 'Jardín maternal' y 'Jardín de infantes'
             WHEN nivel IN ('Jardín maternal', 'Jardín de infantes') THEN 'Inicial (0-5)'
             WHEN nivel = 'Primario' THEN 'Primario (6-12)'
             WHEN nivel IN ('Secundario', 'Secundario - INET') THEN 'Secundario (13-17)'
