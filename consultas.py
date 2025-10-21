@@ -62,8 +62,6 @@ consultaSQL = """
             """
 df1_3FN = db.query(consultaSQL).df()
 
-Tipos_Niveles.to_csv("TablasModelo/Tipos_Niveles.csv", index = False)
-Niveles_EE.to_csv("TablasModelo/Niveles_EE.csv", index = False)
 
 
 
@@ -83,8 +81,6 @@ consultaSQL = """
             ORDER BY clae6;
             """
 df2_3FN = db.query(consultaSQL).df()
-
-df2_3FN.to_csv("TablasModelo/Actividades_Establecimientos.csv", index = False)
 
 
 
@@ -168,7 +164,6 @@ df3_3FN["Empleo_Mujeres"] = df3_3FN["Empleo_Mujeres"].fillna(0)
 df3_3FN["Establecimientos_Varones"] = df3_3FN["Establecimientos_Varones"].fillna(0)
 df3_3FN["Establecimientos_Mujeres"] = df3_3FN["Establecimientos_Mujeres"].fillna(0)
 
-Provincias.to_csv("TablasModelo/Provincias.csv", index = False)
 
 
 
@@ -276,6 +271,10 @@ for i in range(len(df1_3FN)):
     if 2100 <= id_dep <= 2115:
         df1_3FN.at[i, "id_departamento"] = id_comunas[id_dep - 2101]
 
+Tipos_Niveles.to_csv("TablasModelo/Tipos_Niveles.csv", index = False)
+Niveles_EE.to_csv("TablasModelo/Niveles_EE.csv", index = False)
+df2_3FN.to_csv("TablasModelo/Actividades_Establecimientos.csv", index = False)
+Provincias.to_csv("TablasModelo/Provincias.csv", index = False)
 df1_3FN.to_csv("TablasModelo/Establecimientos_Educativos.csv", index = False)
 df3_3FN.to_csv("TablasModelo/Dep_Act_Sex.csv", index = False)
 df4_3FN.to_csv("TablasModelo/Padron_Poblacion.csv", index = False)
@@ -300,6 +299,7 @@ Padron_Poblacion = pd.read_csv(r"TablasModelo\Padron_Poblacion.csv")
 Provincias = pd.read_csv(r"TablasModelo\Provincias.csv")
 Tipos_Niveles = pd.read_csv(r"TablasModelo\Tipos_Niveles.csv")
 
+#%%
 # i)
 consultaSQL = """
         SELECT Niveles_EE.Cueanexo, Provincias.provincia AS Provincia, Departamentos.id_departamento, Departamentos.departamento AS Departamento, Tipos_Niveles.nivel
@@ -355,8 +355,9 @@ consultaSQL = """
             Secundarios,
 """
 Ej1 = db.query(consultaSQL).df()
+
+#%%
 # ii) 
-                #CHEQUEAR PROBLEMA CON CABA
 consultaSQL = """
 WITH Empleo_Departamentos AS (
     SELECT id_departamento, 
@@ -377,7 +378,7 @@ WITH Empleo_Departamentos AS (
 
 Ej2 = db.query(consultaSQL).df()
 
-
+#%%
 # iii)
 consultaSQL = """ SELECT
     Provincias.provincia AS Provincia,
@@ -425,8 +426,8 @@ ORDER BY
 
 Ej3 = db.query(consultaSQL).df()
 
+#%%
 # iv)
-
 consultaSQL = """ -- Calculo del total de empleo por cada departamento
 WITH Empleo_Departamentos AS (
     SELECT id_departamento, SUM(Empleo_Varones + Empleo_Mujeres) AS Total_Empleo
@@ -487,7 +488,18 @@ Top_Rubro_Deptal AS (
 
 Ej4 = db.query(consultaSQL).df()
 
-
-
-
 # %%
+# i)
+
+#%%
+# ii)
+
+#%%
+# iii)
+
+#%%
+# iv)
+
+#%%
+# v)
+
