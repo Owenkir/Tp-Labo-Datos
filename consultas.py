@@ -692,6 +692,64 @@ plt.savefig('grafico_boxplot_ee_por_provincia.png')
 
 #%%
 # iv)
+# Consulta para recolectar Empleados cada mil habitantes y Establecimientos Educativos cada mil habitantes
+consultaSQL= """
+WITH Poblacion_Total AS (SELECT id_departamento, SUM(Casos) AS Poblacion
+                         FROM Padron_Poblacion
+                         GROUP BY id_departamento
+    ),
+EE_Por_Depto AS (SELECT id_departamento, COUNT(Cueanexo) AS cantidad_EE
+                 FROM Establecimientos_Educativos
+                 GROUP BY id_departamento
+    ),
+Empleados_Por_Depto AS (SELECT id_departamento, SUM(Empleo_Varones + Empleo_Mujeres) AS Cant_Empleados
+                        FROM Dep_Act_Sex
+                        WHERE anio = 2022
+                        GROUP BY id_departamento
+    )
+
+
+    SELECT Provincias.provincia, Departamentos.departamento, COALESCE(EE_Por_Depto.cantidad_EE,0) AS cantidad_EE, COALESCE(Empleados_Por_Depto.Cant_Empleados, 0) AS Cant_Empleados, Poblacion_Total.Poblacion,
+        (COALESCE(Empleados_Por_Depto.Cant_Empleados,0) * 1000 / Poblacion_Total.Poblacion) AS Empleados_Cada_Mil,
+        (COALESCE(EE_Por_Depto.cantidad_EE,0) * 1000 / Poblacion_Total.Poblacion) AS EE_Cada_Mil
+    
+    FROM Poblacion_Total
+    JOIN Departamentos ON Poblacion_Total.id_departamento = Departamentos.id_departamento
+    JOIN Provincias ON Departamentos.id_provincia = Provincias.id
+    LEFT JOIN EE_Por_Depto ON Poblacion_Total.id_departamento = EE_Por_Depto.id_departamento
+    LEFT JOIN Empleados_Por_Depto ON Poblacion_Total.id_departamento = Empleados_Por_Depto.id_departamento
+    WHERE Poblacion_Total.Poblacion > 1000;
+--filtro a los deptos con poblacion menor a 1000 para que no distorsione el grafico dividiendo por un numero muy chico, resultando en valores grandes fuera de lo normal.
+
+"""
+
+dfVis4 = db.query(consultaSQL).df()
+
+# Intervalos de poblacion total
+dfVis4['Poblacion_Intervalos'] = pd.cut(dfVis4['Poblacion'], 
+    bins=[0,100000,400000,800000,np.inf], 
+    labels=['0 - 100k', '100k - 400k', '400k - 800k', '800k +'], 
+    right=False #asi es un intervalo cerrado y abierto [a,b)
+)
+# Filtramos por quantil 0.99 para sacar los casos extremos y que no quede lo demas todo junto
+quantil_emp = dfVis4['Empleados_Cada_Mil'].quantile(0.99)
+quantil_ee = dfVis4['EE_Cada_Mil'].quantile(0.99)
+
+dfVis4_filtrado = dfVis4[(dfVis4['Empleados_Cada_Mil'] <= quantil_emp) & (dfVis4['EE_Cada_Mil'] <= quantil_ee)]
+
+sns.scatterplot(
+    data=dfVis4_filtrado, 
+    x='EE_Cada_Mil', 
+    y='Empleados_Cada_Mil', 
+    size='Poblacion',  
+    hue='Poblacion_Intervalos',
+    sizes=(30, 1200),        
+    alpha=0.7,                          
+)
+
+plt.title('Relación Empleados vs Establecimientos Educativos por Departamento.', fontsize=12)
+plt.xlabel('Establecimientos Educativos cada 1000 habitantes', fontsize=8)
+plt.ylabel('Empleados cada 1000 habitantes', fontsize=8)
 
 #%%
 # v)
