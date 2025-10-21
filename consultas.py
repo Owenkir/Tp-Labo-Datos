@@ -726,8 +726,8 @@ dfVis4 = db.query(consultaSQL).df()
 
 # Intervalos de poblacion total
 dfVis4['Poblacion_Intervalos'] = pd.cut(dfVis4['Poblacion'], 
-    bins=[0,100000,400000,800000,np.inf], 
-    labels=['0 - 100k', '100k - 400k', '400k - 800k', '800k +'], 
+    bins=[0,50000,100000,400000,800000,np.inf], 
+    labels=['0 - 50k','50k - 100k', '100k - 400k', '400k - 800k', '800k +'], 
     right=False #asi es un intervalo cerrado y abierto [a,b)
 )
 # Filtramos por quantil 0.99 para sacar los casos extremos y que no quede lo demas todo junto
@@ -739,8 +739,7 @@ dfVis4_filtrado = dfVis4[(dfVis4['Empleados_Cada_Mil'] <= quantil_emp) & (dfVis4
 sns.scatterplot(
     data=dfVis4_filtrado, 
     x='EE_Cada_Mil', 
-    y='Empleados_Cada_Mil', 
-    size='Poblacion',  
+    y='Empleados_Cada_Mil',   
     hue='Poblacion_Intervalos',
     sizes=(30, 1200),        
     alpha=0.7,                          
