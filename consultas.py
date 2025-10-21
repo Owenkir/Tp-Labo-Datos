@@ -753,25 +753,24 @@ plt.ylabel('Empleados cada 1000 habitantes', fontsize=8)
 
 #%%
 # v)
-# IMPORTANTE: Esta consulta usa el DataFrame 'df3' (el CSV original) 
-# que se cargó en la sección ## df3, NO el 'Dep_Act_Sex.csv' procesado.
+# Esta consulta usa el DataFrame 'df3' (el CSV original) 
+# que se cargó en la sección ## df3.
 
-# 1. Calcular el promedio general de empleo femenino (usando df3)
+# Calcular el promedio general de empleo femenino (usando df3)
 sql_promedio_fem = """
 SELECT
     -- Multiplicamos por 1.0 para asegurar división flotante
     SUM(CASE WHEN genero = 'Mujeres' THEN Empleo ELSE 0 END) * 1.0 / 
     SUM(Empleo)
-FROM df3 -- <-- Usando el df3 original (largo)
+FROM df3 -- <-- Usando el df3 original 
 WHERE anio = 2022
 """
 promedio_general = db.query(sql_promedio_fem).fetchone()[0]
 
-
-# 2. Consulta SQL para obtener el Top 5 y Bottom 5 de actividades (usando df3)
+# Consulta SQL para obtener el Top 5 y Bottom 5 de actividades (usando df3)
 sql_top_bottom = """
 WITH
--- 1. Calcular el empleo total por actividad (clae6) para 2022, usando el df3 original
+--  Calcular el empleo total por actividad (clae6) para 2022, usando el df3 original
 Empleo_por_Actividad AS (
     SELECT
         clae6,
@@ -782,7 +781,7 @@ Empleo_por_Actividad AS (
     GROUP BY clae6
 ),
 
--- 2. Calcular la proporción, filtrando actividades
+--  Calcular la proporción, filtrando actividades
 Proporciones_Actividad AS (
     SELECT
         clae6,
@@ -792,35 +791,29 @@ Proporciones_Actividad AS (
         (total_mujeres * 1.0) / (total_mujeres + total_varones) AS proporcion_mujeres
     FROM Empleo_por_Actividad
     -- Filtramos para que sea significativo (más de 100 empleados en total)
-    -- y para evitar división por cero (aunque COALESCE abajo lo manejaría)
     WHERE (total_mujeres + total_varones) > 100 
 ),
 
--- 3. Rankear todas las actividades
+--  Rankear todas las actividades
 Ranked AS (
     SELECT *,
-        -- Rango de 1 a N para las más altas
         ROW_NUMBER() OVER(ORDER BY proporcion_mujeres DESC) as rank_desc,
-        -- Rango de 1 a N para las más bajas
         ROW_NUMBER() OVER(ORDER BY proporcion_mujeres ASC) as rank_asc
     FROM Proporciones_Actividad
-    -- Nos aseguramos de que no haya NaN (si 0/0 ocurre)
     WHERE proporcion_mujeres IS NOT NULL
 )
 
--- 4. Seleccionar el Top 5 y Bottom 5 y unir con sus descripciones
+--  Seleccionar el Top 5 y Bottom 5 y unir con sus descripciones
 SELECT 
     R.clae6,
     A.Actividad,
     R.proporcion_mujeres,
     R.total_empleo,
-    -- Etiqueta para colorear el gráfico
     CASE
         WHEN R.rank_desc <= 5 THEN 'Top 5 (Mayor Proporción)'
         ELSE 'Bottom 5 (Menor Proporción)'
     END AS tipo
 FROM Ranked AS R
--- Unimos con 'Actividades_Establecimientos' que ya está en memoria
 JOIN Actividades_Establecimientos AS A ON R.clae6 = A.clae6
 WHERE R.rank_desc <= 5 OR R.rank_asc <= 5
 ORDER BY R.proporcion_mujeres DESC
@@ -829,11 +822,11 @@ ORDER BY R.proporcion_mujeres DESC
 # Ejecutar la consulta
 df_plot_fem = db.query(sql_top_bottom).df()
 
-# 3. Crear etiquetas legibles para el gráfico (acortando las descripciones)
+# Crear etiquetas legibles para el gráfico (acortando las descripciones)
 df_plot_fem['label_actividad'] = df_plot_fem['Actividad'].str.slice(0, 45) + \
                                  '... (' + df_plot_fem['clae6'].astype(str) + ')'
 
-# 4. Generar el gráfico
+# Generar el gráfico
 plt.figure(figsize=(14, 10))
 ax_fem = sns.barplot(
     data=df_plot_fem,
@@ -844,11 +837,11 @@ ax_fem = sns.barplot(
     dodge=False 
 )
 
-# 5. Formatear el eje X como porcentaje
+# Formatear el eje X como porcentaje
 from matplotlib.ticker import FuncFormatter
 ax_fem.xaxis.set_major_formatter(FuncFormatter(lambda x, p: f'{x * 100:.0f}%'))
 
-# 6. Añadir la línea del promedio general
+# Añadir la línea del promedio general
 ax_fem.axvline(
     x=promedio_general,
     color='blue',
@@ -857,21 +850,21 @@ ax_fem.axvline(
     label=f'Promedio General ({promedio_general * 100:.1f}%)'
 )
 
-# 7. Añadir etiquetas de datos (el porcentaje) en cada barra
+# Añadir etiquetas de datos (el porcentaje) en cada barra
 labels = [f'{p * 100:.1f}%' for p in df_plot_fem['proporcion_mujeres']]
 ax_fem.bar_label(ax_fem.containers[0], labels=labels, padding=3, fontsize=10)
 if len(ax_fem.containers) > 1:
     ax_fem.bar_label(ax_fem.containers[1], labels=labels, padding=3, fontsize=10)
 
 
-# 8. Configurar títulos, leyenda y etiquetas
-ax_fem.set_title('Top 5 y Bottom 5 Actividades por Proporción de Empleo Femenino (2022)', fontsize=16, weight='bold')
-ax_fem.set_xlabel('Proporción de Empleo Femenino', fontsize=12)
-ax_fem.set_ylabel('Actividad (CLAE6)', fontsize=12)
-ax_fem.legend(loc='lower right', fontsize=12)
+# Configurar títulos, leyenda y etiquetas
+ax_fem.set_title('Top 5 y Bottom 5 Actividades por Proporción de Empleo Femenino (2022)', fontsize=16, weight='bold') 
+ax_fem.set_xlabel('Proporcion de empleados mujeres', fontsize=12) 
+ax_fem.set_ylabel('Actividad', fontsize=12)
 
+
+ax_fem.legend(loc='lower right', fontsize=12)
 ax_fem.set_xlim(right=ax_fem.get_xlim()[1] * 1.1) 
 
 plt.tight_layout()
 plt.savefig('grafico_top_bottom_5_empleo_femenino.png')
-
