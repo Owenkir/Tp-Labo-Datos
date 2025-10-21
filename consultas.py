@@ -365,10 +365,11 @@ WITH Empleo_Departamentos AS (
     WHERE anio = 2022
     GROUP BY id_departamento
 )
-    SELECT Provincias.provincia AS Provincia, Departamentos.departamento AS Departamento, Empleo_Departamentos.Empleados_Totales AS "Cantidad total de empleados en 2022"
-    FROM Empleo_Departamentos
-    JOIN Departamentos ON Empleo_Departamentos.id_departamento = Departamentos.id_departamento
+    SELECT Provincias.provincia AS Provincia, Departamentos.departamento AS Departamento, 
+        COALESCE(Empleo_Departamentos.Empleados_Totales, 0) AS "Cantidad total de empleados en 2022"
+    FROM Departamentos
     JOIN Provincias ON Departamentos.id_provincia = Provincias.id
+    LEFT JOIN Empleo_Departamentos ON Empleo_Departamentos.id_departamento = Departamentos.id_departamento
     ORDER BY Provincia ASC,
     "Cantidad total de empleados en 2022" DESC;
 
