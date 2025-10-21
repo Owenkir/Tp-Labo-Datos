@@ -304,13 +304,13 @@ Tipos_Niveles = pd.read_csv(r"TablasModelo\Tipos_Niveles.csv")
 consultaSQL = """
         SELECT Niveles_EE.Cueanexo, Provincias.provincia AS Provincia, Departamentos.id_departamento, Departamentos.departamento AS Departamento, Tipos_Niveles.nivel
         FROM Establecimientos_Educativos
-        JOIN Departamentos
+        RIGHT OUTER JOIN Departamentos
             ON Departamentos.id_departamento = Establecimientos_Educativos.id_departamento
-        JOIN Niveles_EE 
+        LEFT OUTER JOIN Niveles_EE 
             ON Niveles_EE.Cueanexo = Establecimientos_Educativos.Cueanexo
-        JOIN Provincias
+        LEFT OUTER JOIN Provincias
             ON Provincias.id = Departamentos.id_provincia
-        JOIN Tipos_Niveles
+        LEFT OUTER JOIN Tipos_Niveles
             ON Tipos_Niveles.id = Niveles_EE.id_nivel
 """
 EsDepartamentos_Niv = db.query(consultaSQL).df()
