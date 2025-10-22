@@ -747,7 +747,7 @@ WHERE anio = 2022
 promedio_general = db.query(sql_promedio_fem).fetchone()[0]
 
 # Consulta SQL para obtener el Top 5 y Bottom 5 de actividades (usando df3)
-sql_top_bottom = """
+consultaSQL = """
 WITH
 --  Calcular el empleo total por actividad (clae6) para 2022, usando el df3 original
 Empleo_por_Actividad AS (
@@ -798,7 +798,7 @@ WHERE R.rank_desc <= 5 OR R.rank_asc <= 5
 ORDER BY R.proporcion_mujeres DESC
 """
 
-df_plot_5 = db.query(sql_top_bottom).df()
+df_plot_5 = db.query(consultaSQL).df()
 
 # Crear etiquetas legibles para el gráfico (acortando las descripciones)
 df_plot_5['label_actividad'] = df_plot_5['Actividad'].str.slice(0, 45) + \
@@ -846,3 +846,5 @@ barplot_5.set_xlim(right=barplot_5.get_xlim()[1] * 1.1)
 
 plt.tight_layout()
 
+
+# %%
