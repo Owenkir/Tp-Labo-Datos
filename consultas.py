@@ -757,8 +757,8 @@ ax_scatter_4 = sns.scatterplot(
 )
 
 #  Configurar títulos y etiquetas (estilo estandarizado)
-ax_scatter_4.set_title('Relación Empleados vs. EE por cada 1000 Habitantes (2022)', fontsize=16, weight='bold')
-ax_scatter_4.set_xlabel('Establecimientos Educativos (EE) cada 1000 habitantes', fontsize=12)
+ax_scatter_4.set_title('Relación Empleados vs Establecimientos Educativos por cada 1000 Habitantes', fontsize=16, weight='bold')
+ax_scatter_4.set_xlabel('Establecimientos Educativos cada 1000 habitantes', fontsize=12)
 ax_scatter_4.set_ylabel('Empleados cada 1000 habitantes', fontsize=12)
 
 # Mover la leyenda fuera del gráfico para que no tape los puntos
