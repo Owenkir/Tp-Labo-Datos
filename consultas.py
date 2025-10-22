@@ -513,7 +513,7 @@ df_plot_1 = db.query(sql_empleo_prov).df()
 
 # Generar el gráfico
 plt.figure(figsize=(12, 9)) 
-ax_empleo = sns.barplot(
+empleo_1 = sns.barplot(
     data=df_plot_1,
     x='total_empleo',
     y='provincia',
@@ -521,9 +521,9 @@ ax_empleo = sns.barplot(
 )
 
 # Configurar títulos y etiquetas
-ax_empleo.set_title('Cantidad Total de Empleados por Provincia (Año 2022)', fontsize=16, weight='bold')
-ax_empleo.set_xlabel('Cantidad de Empleados (en millones)', fontsize=12)
-ax_empleo.set_ylabel('Provincia', fontsize=12)
+empleo_1.set_title('Cantidad Total de Empleados por Provincia (Año 2022)', fontsize=16, weight='bold')
+empleo_1.set_xlabel('Cantidad de Empleados (en millones)', fontsize=12)
+empleo_1.set_ylabel('Provincia', fontsize=12)
 
 # Añadir las etiquetas de datos (cantidad) en cada barra
 # Formateamos los números para que sean más legibles (ej: 1.5M)
@@ -532,8 +532,8 @@ def format_millones(x, pos):
     return f'{x*1e-6:.1f}M'
 
 from matplotlib.ticker import FuncFormatter
-ax_empleo.xaxis.set_major_formatter(FuncFormatter(format_millones))
-ax_empleo.bar_label(ax_empleo.containers[0], fmt='%.0f', padding=3, fontsize=9)
+empleo_1.xaxis.set_major_formatter(FuncFormatter(format_millones))
+empleo_1.bar_label(empleo_1.containers[0], fmt='%.0f', padding=3, fontsize=9)
 
 plt.tight_layout()
 plt.savefig('grafico_empleados_por_provincia_2022.png') # Guardar el gráfico
@@ -611,7 +611,7 @@ df_plot_3 = db.query(sql_niveles_poblacion).df()
 
 # Generar el gráfico de dispersión
 plt.figure(figsize=(14, 8)) # Un gráfico más ancho para la leyenda
-ax_scatter = sns.scatterplot(
+scatter_2 = sns.scatterplot(
     data=df_plot_3,
     x='poblacion_grupo',
     y='cantidad_ee',
@@ -623,16 +623,16 @@ ax_scatter = sns.scatterplot(
 )
 
 # Configurar títulos y etiquetas
-ax_scatter.set_title('Establecimientos Educativos vs. Población por Nivel y Grupo Etario (por Departamento)', fontsize=16, weight='bold')
-ax_scatter.set_xlabel('Población en el Grupo Etario', fontsize=12)
-ax_scatter.set_ylabel('Cantidad de Establecimientos del Nivel', fontsize=12)
+scatter_2.set_title('Establecimientos Educativos vs. Población por Nivel y Grupo Etario (por Departamento)', fontsize=16, weight='bold')
+scatter_2.set_xlabel('Población en el Grupo Etario', fontsize=12)
+scatter_2.set_ylabel('Cantidad de Establecimientos del Nivel', fontsize=12)
 
 # Formatear ejes para mejor lectura (ej: 10000 -> 10k)
 from matplotlib.ticker import FuncFormatter
-ax_scatter.xaxis.set_major_formatter(FuncFormatter(lambda x, p: f'{x/1000:.0f}k')) 
+scatter_2.xaxis.set_major_formatter(FuncFormatter(lambda x, p: f'{x/1000:.0f}k')) 
 
 # Mover la leyenda fuera del gráfico para que no tape los puntos
-ax_scatter.legend(title='Nivel (Grupo Etario)', bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0.)
+scatter_2.legend(title='Nivel (Grupo Etario)', bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0.)
 
 plt.tight_layout()
 # bbox_inches='tight' es importante para asegurar que la leyenda se guarde
@@ -663,7 +663,7 @@ prov_order = df_plot_3.groupby('provincia')['cantidad_ee'] \
 
 # Generar el gráfico
 plt.figure(figsize=(12, 10)) 
-ax_box = sns.boxplot(
+box_3 = sns.boxplot(
     data=df_plot_3,
     x='cantidad_ee',
     y='provincia',
@@ -672,19 +672,19 @@ ax_box = sns.boxplot(
 )
 
 # Configurar títulos y etiquetas
-ax_box.set_title('Distribución de Establecimientos Educativos (EE) por Departamento', fontsize=16, weight='bold')
+box_3.set_title('Distribución de Establecimientos Educativos (EE) por Departamento', fontsize=16, weight='bold')
 
 # Añadimos la aclaración [Escala Logarítmica] a la etiqueta del eje X
-ax_box.set_xlabel('Cantidad de Establecimientos Educativos (por Departamento) [Escala Logarítmica]', fontsize=12)
+box_3.set_xlabel('Cantidad de Establecimientos Educativos (por Departamento) [Escala Logarítmica]', fontsize=12)
 
 
-ax_box.set_ylabel('Provincia', fontsize=12)
+box_3.set_ylabel('Provincia', fontsize=12)
 
 # Mejorar la legibilidad del eje X
-ax_box.xaxis.grid(True)
-ax_box.set_xscale('log') # Aplicar la escala logarítmica
+box_3.xaxis.grid(True)
+box_3.set_xscale('log') # Aplicar la escala logarítmica
 from matplotlib.ticker import ScalarFormatter
-ax_box.xaxis.set_major_formatter(ScalarFormatter()) # Mostrar números (10, 100) en lugar de (10^1, 10^2)
+box_3.xaxis.set_major_formatter(ScalarFormatter()) # Mostrar números (10, 100) en lugar de (10^1, 10^2)
 
 plt.tight_layout()
 plt.savefig('grafico_boxplot_ee_por_provincia.png')
@@ -745,7 +745,7 @@ df_plot_4_filtrado = df_plot_4[
 
 #  Generar el gráfico de dispersión
 plt.figure(figsize=(14, 9)) # Definimos un tamaño de figura
-ax_scatter_4 = sns.scatterplot(
+scatter_4 = sns.scatterplot(
     data=df_plot_4_filtrado, 
     x='EE_Cada_Mil', 
     y='Empleados_Cada_Mil',    
@@ -757,12 +757,12 @@ ax_scatter_4 = sns.scatterplot(
 )
 
 #  Configurar títulos y etiquetas (estilo estandarizado)
-ax_scatter_4.set_title('Relación Empleados vs Establecimientos Educativos por cada 1000 Habitantes', fontsize=16, weight='bold')
-ax_scatter_4.set_xlabel('Establecimientos Educativos cada 1000 habitantes', fontsize=12)
-ax_scatter_4.set_ylabel('Empleados cada 1000 habitantes', fontsize=12)
+scatter_4.set_title('Relación Empleados vs Establecimientos Educativos por cada 1000 Habitantes', fontsize=16, weight='bold')
+scatter_4.set_xlabel('Establecimientos Educativos cada 1000 habitantes', fontsize=12)
+scatter_4.set_ylabel('Empleados cada 1000 habitantes', fontsize=12)
 
 # Mover la leyenda fuera del gráfico para que no tape los puntos
-ax_scatter_4.legend(title='Población del Departamento', bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0.)
+scatter_4.legend(title='Población del Departamento', bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0.)
 
 plt.tight_layout()
 
