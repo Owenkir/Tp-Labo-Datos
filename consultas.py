@@ -62,15 +62,6 @@ consultaSQL = """
             """
 df1_3FN = db.query(consultaSQL).df()
 
-
-
-
-
-
-
-
-
-
 ## df2
 #%%
 df2 = pd.read_csv(r"TablasOriginales/actividades_establecimientos.csv")
@@ -81,14 +72,6 @@ consultaSQL = """
             ORDER BY clae6;
             """
 df2_3FN = db.query(consultaSQL).df()
-
-
-
-
-
-
-
-
 
 
 ## df3
@@ -163,15 +146,6 @@ df3_3FN["Empleo_Varones"] = df3_3FN["Empleo_Varones"].fillna(0)
 df3_3FN["Empleo_Mujeres"] = df3_3FN["Empleo_Mujeres"].fillna(0)
 df3_3FN["Establecimientos_Varones"] = df3_3FN["Establecimientos_Varones"].fillna(0)
 df3_3FN["Establecimientos_Mujeres"] = df3_3FN["Establecimientos_Mujeres"].fillna(0)
-
-
-
-
-
-
-
-
-
 
 
 ## df4
@@ -508,10 +482,9 @@ GROUP BY P.provincia
 ORDER BY total_empleo DESC
 """
 
-# Ejecutar la consulta
 df_plot_1 = db.query(sql_empleo_prov).df()
 
-# Generar el gráfico
+
 plt.figure(figsize=(12, 9)) 
 empleo_1 = sns.barplot(
     data=df_plot_1,
@@ -536,7 +509,8 @@ empleo_1.xaxis.set_major_formatter(FuncFormatter(format_millones))
 empleo_1.bar_label(empleo_1.containers[0], fmt='%.0f', padding=3, fontsize=9)
 
 plt.tight_layout()
-plt.savefig('grafico_empleados_por_provincia_2022.png') # Guardar el gráfico
+
+
 #%%
 # ii)
 # Consulta SQL para cruzar población y establecimientos por nivel
@@ -606,10 +580,9 @@ Plot_Data AS (
 SELECT * FROM Plot_Data
 """
 
-# Ejecutar la consulta
 df_plot_3 = db.query(sql_niveles_poblacion).df()
 
-# Generar el gráfico de dispersión
+
 plt.figure(figsize=(14, 8)) # Un gráfico más ancho para la leyenda
 scatter_2 = sns.scatterplot(
     data=df_plot_3,
@@ -634,9 +607,7 @@ scatter_2.xaxis.set_major_formatter(FuncFormatter(lambda x, p: f'{x/1000:.0f}k')
 # Mover la leyenda fuera del gráfico para que no tape los puntos
 scatter_2.legend(title='Nivel (Grupo Etario)', bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0.)
 
-plt.tight_layout()
-# bbox_inches='tight' es importante para asegurar que la leyenda se guarde
-plt.savefig('grafico_ee_vs_poblacion_por_nivel.png', bbox_inches='tight') 
+plt.tight_layout() 
 
 #%%
 # iii)
@@ -652,7 +623,6 @@ JOIN Provincias AS P ON D.id_provincia = P.id
 GROUP BY P.provincia, D.departamento
 """
 
-# Ejecutar la consulta
 df_plot_3 = db.query(sql_box).df()
 
 # Calcular el orden de las provincias basado en su mediana
@@ -661,7 +631,7 @@ prov_order = df_plot_3.groupby('provincia')['cantidad_ee'] \
                       .sort_values(ascending=False) \
                       .index
 
-# Generar el gráfico
+
 plt.figure(figsize=(12, 10)) 
 box_3 = sns.boxplot(
     data=df_plot_3,
@@ -687,7 +657,6 @@ from matplotlib.ticker import ScalarFormatter
 box_3.xaxis.set_major_formatter(ScalarFormatter()) # Mostrar números (10, 100) en lugar de (10^1, 10^2)
 
 plt.tight_layout()
-plt.savefig('grafico_boxplot_ee_por_provincia.png')
 
 #%%
 # iv)
@@ -722,10 +691,9 @@ Empleados_Por_Depto AS (SELECT id_departamento, SUM(Empleo_Varones + Empleo_Muje
 
 """
 
-# Ejecutar la consulta
 df_plot_4 = db.query(consultaSQL).df()
 
-#  Procesamiento de datos: Bins de población y filtrado de outliers
+# Procesamiento de datos: Bins de población y filtrado de outliers
 # Intervalos de poblacion total
 df_plot_4['Poblacion_Intervalos'] = pd.cut(
     df_plot_4['Poblacion'], 
@@ -743,7 +711,6 @@ df_plot_4_filtrado = df_plot_4[
     (df_plot_4['EE_Cada_Mil'] <= quantil_ee)
 ]
 
-#  Generar el gráfico de dispersión
 plt.figure(figsize=(14, 9)) # Definimos un tamaño de figura
 scatter_4 = sns.scatterplot(
     data=df_plot_4_filtrado, 
@@ -834,16 +801,15 @@ WHERE R.rank_desc <= 5 OR R.rank_asc <= 5
 ORDER BY R.proporcion_mujeres DESC
 """
 
-# Ejecutar la consulta
 df_plot_5 = db.query(sql_top_bottom).df()
 
 # Crear etiquetas legibles para el gráfico (acortando las descripciones)
 df_plot_5['label_actividad'] = df_plot_5['Actividad'].str.slice(0, 45) + \
                                  '... (' + df_plot_5['clae6'].astype(str) + ')'
 
-# Generar el gráfico
+
 plt.figure(figsize=(14, 10))
-ax_fem = sns.barplot(
+barplot_5 = sns.barplot(
     data=df_plot_5,
     x='proporcion_mujeres',
     y='label_actividad',
@@ -854,10 +820,10 @@ ax_fem = sns.barplot(
 
 # Formatear el eje X como porcentaje
 from matplotlib.ticker import FuncFormatter
-ax_fem.xaxis.set_major_formatter(FuncFormatter(lambda x, p: f'{x * 100:.0f}%'))
+barplot_5.xaxis.set_major_formatter(FuncFormatter(lambda x, p: f'{x * 100:.0f}%'))
 
 # Añadir la línea del promedio general
-ax_fem.axvline(
+barplot_5.axvline(
     x=promedio_general,
     color='blue',
     linestyle='--',
@@ -867,19 +833,19 @@ ax_fem.axvline(
 
 # Añadir etiquetas de datos (el porcentaje) en cada barra
 labels = [f'{p * 100:.1f}%' for p in df_plot_5['proporcion_mujeres']]
-ax_fem.bar_label(ax_fem.containers[0], labels=labels, padding=3, fontsize=10)
-if len(ax_fem.containers) > 1:
-    ax_fem.bar_label(ax_fem.containers[1], labels=labels, padding=3, fontsize=10)
+barplot_5.bar_label(barplot_5.containers[0], labels=labels, padding=3, fontsize=10)
+if len(barplot_5.containers) > 1:
+    barplot_5.bar_label(barplot_5.containers[1], labels=labels, padding=3, fontsize=10)
 
 
 # Configurar títulos, leyenda y etiquetas
-ax_fem.set_title('Top 5 y Bottom 5 Actividades por Proporción de Empleo Femenino (2022)', fontsize=16, weight='bold') 
-ax_fem.set_xlabel('Proporcion de empleados mujeres', fontsize=12) 
-ax_fem.set_ylabel('Actividad', fontsize=12)
+barplot_5.set_title('Top 5 y Bottom 5 Actividades por Proporción de Empleo Femenino (2022)', fontsize=16, weight='bold') 
+barplot_5.set_xlabel('Proporcion de empleados mujeres', fontsize=12) 
+barplot_5.set_ylabel('Actividad', fontsize=12)
 
 
-ax_fem.legend(loc='lower right', fontsize=12)
-ax_fem.set_xlim(right=ax_fem.get_xlim()[1] * 1.1) 
+barplot_5.legend(loc='lower right', fontsize=12)
+barplot_5.set_xlim(right=barplot_5.get_xlim()[1] * 1.1) 
 
 plt.tight_layout()
-plt.savefig('grafico_top_bottom_5_empleo_femenino.png')
+
