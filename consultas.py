@@ -691,63 +691,87 @@ plt.savefig('grafico_boxplot_ee_por_provincia.png')
 
 #%%
 # iv)
-# Consulta para recolectar Empleados cada mil habitantes y Establecimientos Educativos cada mil habitantes
-consultaSQL= """
-WITH Poblacion_Total AS (SELECT id_departamento, SUM(Casos) AS Poblacion
-                         FROM Padron_Poblacion
-                         GROUP BY id_departamento
-    ),
-EE_Por_Depto AS (SELECT id_departamento, COUNT(Cueanexo) AS cantidad_EE
-                 FROM Establecimientos_Educativos
-                 GROUP BY id_departamento
-    ),
-Empleados_Por_Depto AS (SELECT id_departamento, SUM(Empleo_Varones + Empleo_Mujeres) AS Cant_Empleados
-                        FROM Dep_Act_Sex
-                        WHERE anio = 2022
-                        GROUP BY id_departamento
-    )
+# 1. Consulta SQL para recolectar métricas normalizadas por población
+sql_scatter_ratio = """
+WITH 
+Poblacion_Total AS (
+    SELECT id_departamento, SUM(Casos) AS Poblacion
+    FROM Padron_Poblacion -- Usa variable en memoria
+    GROUP BY id_departamento
+),
+EE_Por_Depto AS (
+    SELECT id_departamento, COUNT(Cueanexo) AS cantidad_EE
+    FROM Establecimientos_Educativos -- Usa variable en memoria
+    GROUP BY id_departamento
+),
+Empleados_Por_Depto AS (
+    SELECT id_departamento, SUM(Empleo_Varones + Empleo_Mujeres) AS Cant_Empleados
+    FROM Dep_Act_Sex -- Usa variable en memoria
+    WHERE anio = 2022
+    GROUP BY id_departamento
+)
 
-
-    SELECT Provincias.provincia, Departamentos.departamento, COALESCE(EE_Por_Depto.cantidad_EE,0) AS cantidad_EE, COALESCE(Empleados_Por_Depto.Cant_Empleados, 0) AS Cant_Empleados, Poblacion_Total.Poblacion,
-        (COALESCE(Empleados_Por_Depto.Cant_Empleados,0) * 1000 / Poblacion_Total.Poblacion) AS Empleados_Cada_Mil,
-        (COALESCE(EE_Por_Depto.cantidad_EE,0) * 1000 / Poblacion_Total.Poblacion) AS EE_Cada_Mil
+SELECT 
+    P.provincia, 
+    D.departamento, 
+    COALESCE(EE.cantidad_EE, 0) AS cantidad_EE, 
+    COALESCE(EP.Cant_Empleados, 0) AS Cant_Empleados, 
+    PT.Poblacion,
+    -- Cálculo de ratio (por 1000 hab)
+    (COALESCE(EP.Cant_Empleados, 0) * 1000.0 / PT.Poblacion) AS Empleados_Cada_Mil,
+    (COALESCE(EE.cantidad_EE, 0) * 1000.0 / PT.Poblacion) AS EE_Cada_Mil
     
-    FROM Poblacion_Total
-    JOIN Departamentos ON Poblacion_Total.id_departamento = Departamentos.id_departamento
-    JOIN Provincias ON Departamentos.id_provincia = Provincias.id
-    LEFT JOIN EE_Por_Depto ON Poblacion_Total.id_departamento = EE_Por_Depto.id_departamento
-    LEFT JOIN Empleados_Por_Depto ON Poblacion_Total.id_departamento = Empleados_Por_Depto.id_departamento
-    WHERE Poblacion_Total.Poblacion > 1000;
---filtro a los deptos con poblacion menor a 1000 para que no distorsione el grafico dividiendo por un numero muy chico, resultando en valores grandes fuera de lo normal.
-
+FROM Poblacion_Total AS PT
+JOIN Departamentos AS D ON PT.id_departamento = D.id_departamento
+JOIN Provincias AS P ON D.id_provincia = P.id
+LEFT JOIN EE_Por_Depto AS EE ON PT.id_departamento = EE.id_departamento
+LEFT JOIN Empleados_Por_Depto AS EP ON PT.id_departamento = EP.id_departamento
+WHERE PT.Poblacion > 1000 -- Filtro para evitar distorsiones
 """
 
-dfVis4 = db.query(consultaSQL).df()
+# Ejecutar la consulta
+df_plot_4 = db.query(sql_scatter_ratio).df()
 
+#  Procesamiento de datos: Bins de población y filtrado de outliers
 # Intervalos de poblacion total
-dfVis4['Poblacion_Intervalos'] = pd.cut(dfVis4['Poblacion'], 
-    bins=[0,50000,100000,400000,800000,np.inf], 
-    labels=['0 - 50k','50k - 100k', '100k - 400k', '400k - 800k', '800k +'], 
-    right=False #asi es un intervalo cerrado y abierto [a,b)
+df_plot_4['Poblacion_Intervalos'] = pd.cut(
+    df_plot_4['Poblacion'], 
+    bins=[0, 50000, 100000, 400000, 800000, np.inf], 
+    labels=['0 - 50k', '50k - 100k', '100k - 400k', '400k - 800k', '800k +'], 
+    right=False
 )
-# Filtramos por quantil 0.99 para sacar los casos extremos y que no quede lo demas todo junto
-quantil_emp = dfVis4['Empleados_Cada_Mil'].quantile(0.99)
-quantil_ee = dfVis4['EE_Cada_Mil'].quantile(0.99)
 
-dfVis4_filtrado = dfVis4[(dfVis4['Empleados_Cada_Mil'] <= quantil_emp) & (dfVis4['EE_Cada_Mil'] <= quantil_ee)]
+# Filtramos por quantil 0.99 para sacar los casos extremos
+quantil_emp = df_plot_4['Empleados_Cada_Mil'].quantile(0.99)
+quantil_ee = df_plot_4['EE_Cada_Mil'].quantile(0.99)
 
-sns.scatterplot(
-    data=dfVis4_filtrado, 
+df_plot_4_filtrado = df_plot_4[
+    (df_plot_4['Empleados_Cada_Mil'] <= quantil_emp) & 
+    (df_plot_4['EE_Cada_Mil'] <= quantil_ee)
+]
+
+#  Generar el gráfico de dispersión
+plt.figure(figsize=(14, 9)) # Definimos un tamaño de figura
+ax_scatter_4 = sns.scatterplot(
+    data=df_plot_4_filtrado, 
     x='EE_Cada_Mil', 
-    y='Empleados_Cada_Mil',   
-    hue='Poblacion_Intervalos',
-    sizes=(30, 1200),        
-    alpha=0.7,                          
+    y='Empleados_Cada_Mil',    
+    hue='Poblacion_Intervalos', 
+    size='Poblacion',           
+    sizes=(30, 1000),           
+    palette='viridis',
+    alpha=0.7                                  
 )
 
-plt.title('Relación Empleados vs Establecimientos Educativos por Departamento.', fontsize=12)
-plt.xlabel('Establecimientos Educativos cada 1000 habitantes', fontsize=8)
-plt.ylabel('Empleados cada 1000 habitantes', fontsize=8)
+#  Configurar títulos y etiquetas (estilo estandarizado)
+ax_scatter_4.set_title('Relación Empleados vs. EE por cada 1000 Habitantes (2022)', fontsize=16, weight='bold')
+ax_scatter_4.set_xlabel('Establecimientos Educativos (EE) cada 1000 habitantes', fontsize=12)
+ax_scatter_4.set_ylabel('Empleados cada 1000 habitantes', fontsize=12)
+
+# Mover la leyenda fuera del gráfico para que no tape los puntos
+ax_scatter_4.legend(title='Población del Departamento', bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0.)
+
+plt.tight_layout()
 
 #%%
 # v)
