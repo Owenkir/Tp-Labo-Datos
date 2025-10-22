@@ -828,17 +828,9 @@ barplot_5.axvline(
     label=f'Promedio General ({promedio_general * 100:.1f}%)'
 )
 
-# Añadir etiquetas de datos (el porcentaje) en cada barra
-labels = [f'{p * 100:.1f}%' for p in df_plot_5['proporcion_mujeres']]
-barplot_5.bar_label(barplot_5.containers[0], labels=labels, padding=3, fontsize=10)
-if len(barplot_5.containers) > 1:
-    barplot_5.bar_label(barplot_5.containers[1], labels=labels, padding=3, fontsize=10)
-
-
-
-plt.set_title('Top 5 y Bottom 5 Actividades por Proporción de Empleo Femenino (2022)', fontsize=16, weight='bold') 
-plt.set_xlabel('Proporcion de empleados mujeres', fontsize=12) 
-plt.set_ylabel('Actividad', fontsize=12)
+barplot_5.set_title('Top 5 y Bottom 5 Actividades por Proporción de Empleo Femenino (2022)', fontsize=16, weight='bold') 
+barplot_5.set_xlabel('Proporcion de empleados mujeres', fontsize=12) 
+barplot_5.set_ylabel('Actividad', fontsize=12)
 
 
 barplot_5.legend(loc='lower right', fontsize=12)
