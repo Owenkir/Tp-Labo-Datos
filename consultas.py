@@ -641,13 +641,10 @@ box_3 = sns.boxplot(
     palette='viridis'
 )
 
-# Configurar títulos y etiquetas
+
 box_3.set_title('Distribución de Establecimientos Educativos (EE) por Departamento', fontsize=16, weight='bold')
-
-# Añadimos la aclaración [Escala Logarítmica] a la etiqueta del eje X
+# Añadimos la aclaración [Escala Logarítmica] al eje X
 box_3.set_xlabel('Cantidad de Establecimientos Educativos (por Departamento) [Escala Logarítmica]', fontsize=12)
-
-
 box_3.set_ylabel('Provincia', fontsize=12)
 
 # Mejorar la legibilidad del eje X
@@ -818,7 +815,7 @@ barplot_5 = sns.barplot(
     dodge=False 
 )
 
-# Formatear el eje X como porcentaje
+# Formateo el eje X como porcentaje
 from matplotlib.ticker import FuncFormatter
 barplot_5.xaxis.set_major_formatter(FuncFormatter(lambda x, p: f'{x * 100:.0f}%'))
 
