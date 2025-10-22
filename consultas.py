@@ -509,12 +509,12 @@ ORDER BY total_empleo DESC
 """
 
 # Ejecutar la consulta
-df_plot_empleo = db.query(sql_empleo_prov).df()
+df_plot_1 = db.query(sql_empleo_prov).df()
 
 # Generar el gráfico
 plt.figure(figsize=(12, 9)) 
 ax_empleo = sns.barplot(
-    data=df_plot_empleo,
+    data=df_plot_1,
     x='total_empleo',
     y='provincia',
     palette='inferno' 
@@ -607,12 +607,12 @@ SELECT * FROM Plot_Data
 """
 
 # Ejecutar la consulta
-df_plot_niveles = db.query(sql_niveles_poblacion).df()
+df_plot_3 = db.query(sql_niveles_poblacion).df()
 
 # Generar el gráfico de dispersión
 plt.figure(figsize=(14, 8)) # Un gráfico más ancho para la leyenda
 ax_scatter = sns.scatterplot(
-    data=df_plot_niveles,
+    data=df_plot_3,
     x='poblacion_grupo',
     y='cantidad_ee',
     hue='grupo_etario',  # Color por grupo
@@ -653,10 +653,10 @@ GROUP BY P.provincia, D.departamento
 """
 
 # Ejecutar la consulta
-df_plot_box = db.query(sql_box).df()
+df_plot_3 = db.query(sql_box).df()
 
 # Calcular el orden de las provincias basado en su mediana
-prov_order = df_plot_box.groupby('provincia')['cantidad_ee'] \
+prov_order = df_plot_3.groupby('provincia')['cantidad_ee'] \
                       .median() \
                       .sort_values(ascending=False) \
                       .index
@@ -664,7 +664,7 @@ prov_order = df_plot_box.groupby('provincia')['cantidad_ee'] \
 # Generar el gráfico
 plt.figure(figsize=(12, 10)) 
 ax_box = sns.boxplot(
-    data=df_plot_box,
+    data=df_plot_3,
     x='cantidad_ee',
     y='provincia',
     order=prov_order,
@@ -692,45 +692,38 @@ plt.savefig('grafico_boxplot_ee_por_provincia.png')
 #%%
 # iv)
 # 1. Consulta SQL para recolectar métricas normalizadas por población
-sql_scatter_ratio = """
-WITH 
-Poblacion_Total AS (
-    SELECT id_departamento, SUM(Casos) AS Poblacion
-    FROM Padron_Poblacion -- Usa variable en memoria
-    GROUP BY id_departamento
-),
-EE_Por_Depto AS (
-    SELECT id_departamento, COUNT(Cueanexo) AS cantidad_EE
-    FROM Establecimientos_Educativos -- Usa variable en memoria
-    GROUP BY id_departamento
-),
-Empleados_Por_Depto AS (
-    SELECT id_departamento, SUM(Empleo_Varones + Empleo_Mujeres) AS Cant_Empleados
-    FROM Dep_Act_Sex -- Usa variable en memoria
-    WHERE anio = 2022
-    GROUP BY id_departamento
-)
+consultaSQL= """
+WITH Poblacion_Total AS (SELECT id_departamento, SUM(Casos) AS Poblacion
+                         FROM Padron_Poblacion
+                         GROUP BY id_departamento
+    ),
+EE_Por_Depto AS (SELECT id_departamento, COUNT(Cueanexo) AS cantidad_EE
+                 FROM Establecimientos_Educativos
+                 GROUP BY id_departamento
+    ),
+Empleados_Por_Depto AS (SELECT id_departamento, SUM(Empleo_Varones + Empleo_Mujeres) AS Cant_Empleados
+                        FROM Dep_Act_Sex
+                        WHERE anio = 2022
+                        GROUP BY id_departamento
+    )
 
-SELECT 
-    P.provincia, 
-    D.departamento, 
-    COALESCE(EE.cantidad_EE, 0) AS cantidad_EE, 
-    COALESCE(EP.Cant_Empleados, 0) AS Cant_Empleados, 
-    PT.Poblacion,
-    -- Cálculo de ratio (por 1000 hab)
-    (COALESCE(EP.Cant_Empleados, 0) * 1000.0 / PT.Poblacion) AS Empleados_Cada_Mil,
-    (COALESCE(EE.cantidad_EE, 0) * 1000.0 / PT.Poblacion) AS EE_Cada_Mil
+
+    SELECT Provincias.provincia, Departamentos.departamento, COALESCE(EE_Por_Depto.cantidad_EE,0) AS cantidad_EE, COALESCE(Empleados_Por_Depto.Cant_Empleados, 0) AS Cant_Empleados, Poblacion_Total.Poblacion,
+        (COALESCE(Empleados_Por_Depto.Cant_Empleados,0) * 1000 / Poblacion_Total.Poblacion) AS Empleados_Cada_Mil,
+        (COALESCE(EE_Por_Depto.cantidad_EE,0) * 1000 / Poblacion_Total.Poblacion) AS EE_Cada_Mil
     
-FROM Poblacion_Total AS PT
-JOIN Departamentos AS D ON PT.id_departamento = D.id_departamento
-JOIN Provincias AS P ON D.id_provincia = P.id
-LEFT JOIN EE_Por_Depto AS EE ON PT.id_departamento = EE.id_departamento
-LEFT JOIN Empleados_Por_Depto AS EP ON PT.id_departamento = EP.id_departamento
-WHERE PT.Poblacion > 1000 -- Filtro para evitar distorsiones
+    FROM Poblacion_Total
+    JOIN Departamentos ON Poblacion_Total.id_departamento = Departamentos.id_departamento
+    JOIN Provincias ON Departamentos.id_provincia = Provincias.id
+    LEFT JOIN EE_Por_Depto ON Poblacion_Total.id_departamento = EE_Por_Depto.id_departamento
+    LEFT JOIN Empleados_Por_Depto ON Poblacion_Total.id_departamento = Empleados_Por_Depto.id_departamento
+    WHERE Poblacion_Total.Poblacion > 1000;
+--filtro a los deptos con poblacion menor a 1000 para que no distorsione el grafico.
+
 """
 
 # Ejecutar la consulta
-df_plot_4 = db.query(sql_scatter_ratio).df()
+df_plot_4 = db.query(consultaSQL).df()
 
 #  Procesamiento de datos: Bins de población y filtrado de outliers
 # Intervalos de poblacion total
@@ -842,16 +835,16 @@ ORDER BY R.proporcion_mujeres DESC
 """
 
 # Ejecutar la consulta
-df_plot_fem = db.query(sql_top_bottom).df()
+df_plot_5 = db.query(sql_top_bottom).df()
 
 # Crear etiquetas legibles para el gráfico (acortando las descripciones)
-df_plot_fem['label_actividad'] = df_plot_fem['Actividad'].str.slice(0, 45) + \
-                                 '... (' + df_plot_fem['clae6'].astype(str) + ')'
+df_plot_5['label_actividad'] = df_plot_5['Actividad'].str.slice(0, 45) + \
+                                 '... (' + df_plot_5['clae6'].astype(str) + ')'
 
 # Generar el gráfico
 plt.figure(figsize=(14, 10))
 ax_fem = sns.barplot(
-    data=df_plot_fem,
+    data=df_plot_5,
     x='proporcion_mujeres',
     y='label_actividad',
     hue='tipo',
@@ -873,7 +866,7 @@ ax_fem.axvline(
 )
 
 # Añadir etiquetas de datos (el porcentaje) en cada barra
-labels = [f'{p * 100:.1f}%' for p in df_plot_fem['proporcion_mujeres']]
+labels = [f'{p * 100:.1f}%' for p in df_plot_5['proporcion_mujeres']]
 ax_fem.bar_label(ax_fem.containers[0], labels=labels, padding=3, fontsize=10)
 if len(ax_fem.containers) > 1:
     ax_fem.bar_label(ax_fem.containers[1], labels=labels, padding=3, fontsize=10)
