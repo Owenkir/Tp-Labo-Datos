@@ -493,7 +493,7 @@ empleo_1 = sns.barplot(
     palette='inferno' 
 )
 
-# Configurar títulos y etiquetas
+
 empleo_1.set_title('Cantidad Total de Empleados por Provincia (Año 2022)', fontsize=16, weight='bold')
 empleo_1.set_xlabel('Cantidad de Empleados (en millones)', fontsize=12)
 empleo_1.set_ylabel('Provincia', fontsize=12)
@@ -595,7 +595,7 @@ scatter_2 = sns.scatterplot(
     s=80                 # Tamaño de los puntos
 )
 
-# Configurar títulos y etiquetas
+
 scatter_2.set_title('Establecimientos Educativos vs. Población por Nivel y Grupo Etario (por Departamento)', fontsize=16, weight='bold')
 scatter_2.set_xlabel('Población en el Grupo Etario', fontsize=12)
 scatter_2.set_ylabel('Cantidad de Establecimientos del Nivel', fontsize=12)
@@ -720,7 +720,7 @@ scatter_4 = sns.scatterplot(
     alpha=0.7                                  
 )
 
-#  Configurar títulos y etiquetas (estilo estandarizado)
+
 scatter_4.set_title('Relación Empleados vs Establecimientos Educativos por cada 1000 Habitantes', fontsize=16, weight='bold')
 scatter_4.set_xlabel('Establecimientos Educativos cada 1000 habitantes', fontsize=12)
 scatter_4.set_ylabel('Empleados cada 1000 habitantes', fontsize=12)
@@ -819,7 +819,7 @@ barplot_5 = sns.barplot(
 from matplotlib.ticker import FuncFormatter
 barplot_5.xaxis.set_major_formatter(FuncFormatter(lambda x, p: f'{x * 100:.0f}%'))
 
-# Añadir la línea del promedio general
+# línea del promedio general
 barplot_5.axvline(
     x=promedio_general,
     color='blue',
@@ -835,10 +835,10 @@ if len(barplot_5.containers) > 1:
     barplot_5.bar_label(barplot_5.containers[1], labels=labels, padding=3, fontsize=10)
 
 
-# Configurar títulos, leyenda y etiquetas
-barplot_5.set_title('Top 5 y Bottom 5 Actividades por Proporción de Empleo Femenino (2022)', fontsize=16, weight='bold') 
-barplot_5.set_xlabel('Proporcion de empleados mujeres', fontsize=12) 
-barplot_5.set_ylabel('Actividad', fontsize=12)
+
+plt.set_title('Top 5 y Bottom 5 Actividades por Proporción de Empleo Femenino (2022)', fontsize=16, weight='bold') 
+plt.set_xlabel('Proporcion de empleados mujeres', fontsize=12) 
+plt.set_ylabel('Actividad', fontsize=12)
 
 
 barplot_5.legend(loc='lower right', fontsize=12)
@@ -847,4 +847,4 @@ barplot_5.set_xlim(right=barplot_5.get_xlim()[1] * 1.1)
 plt.tight_layout()
 
 
-# %%
+
