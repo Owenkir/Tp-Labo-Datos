@@ -1,3 +1,10 @@
+# Integrantes del grupo:
+
+# Faltlhauser, Andres 1255/24 
+# Kirschbaum, Owen 1310/24
+# Yurzola, Marcos 1235/24
+
+
 #%%
 import pandas as pd
 import seaborn as sns
